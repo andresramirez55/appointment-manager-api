@@ -32,6 +32,21 @@ type CreatePatientRequest struct {
 	Notes string `json:"notes"`
 }
 
+func (s *PatientService) UpdatePatient(ctx context.Context, id int64, req *CreatePatientRequest) (*models.Patient, error) {
+	patient, err := s.patientRepo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	patient.Name = req.Name
+	patient.Phone = req.Phone
+	patient.Email = req.Email
+	patient.Notes = req.Notes
+	if err := s.patientRepo.Update(ctx, patient); err != nil {
+		return nil, err
+	}
+	return patient, nil
+}
+
 func (s *PatientService) CreatePatient(ctx context.Context, req *CreatePatientRequest) (*models.Patient, error) {
 	patient := &models.Patient{
 		Name:  req.Name,

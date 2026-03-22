@@ -19,6 +19,10 @@ func (r *patientRepository) Create(ctx context.Context, patient *models.Patient)
 	return r.db.WithContext(ctx).Create(patient).Error
 }
 
+func (r *patientRepository) Update(ctx context.Context, patient *models.Patient) error {
+	return r.db.WithContext(ctx).Save(patient).Error
+}
+
 func (r *patientRepository) FindByPhone(ctx context.Context, phone string) (*models.Patient, error) {
 	var patient models.Patient
 	if err := r.db.WithContext(ctx).Where("phone = ?", phone).First(&patient).Error; err != nil {

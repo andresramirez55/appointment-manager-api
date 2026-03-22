@@ -33,12 +33,27 @@ func (ctrl *AppointmentController) Create(c *gin.Context) {
 }
 
 func (ctrl *AppointmentController) GetAll(c *gin.Context) {
+	// Filtrar por paciente si se pasa patient_id
+	if patientIDStr := c.Query("patient_id"); patientIDStr != "" {
+		patientID, err := strconv.ParseInt(patientIDStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid patient_id"})
+			return
+		}
+		appointments, err := ctrl.appointmentService.GetAppointmentsByPatient(c.Request.Context(), patientID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, appointments)
+		return
+	}
+
 	appointments, err := ctrl.appointmentService.GetAllAppointments(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusOK, appointments)
 }
 

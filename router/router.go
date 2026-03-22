@@ -81,6 +81,7 @@ func NewRouter(
 			patients.POST("", patientController.Create)
 			patients.GET("", patientController.GetAll)
 			patients.GET("/:id", patientController.GetByID)
+			patients.PUT("/:id", patientController.Update)
 		}
 
 		// Notes

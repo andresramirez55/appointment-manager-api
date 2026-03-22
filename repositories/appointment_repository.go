@@ -51,6 +51,18 @@ func (r *appointmentRepository) Delete(ctx context.Context, id int64) error {
 	return r.db.WithContext(ctx).Delete(&models.Appointment{}, id).Error
 }
 
+func (r *appointmentRepository) FindByPatient(ctx context.Context, patientID int64) ([]*models.Appointment, error) {
+	var appointments []*models.Appointment
+	if err := r.db.WithContext(ctx).
+		Preload("Patient").
+		Where("patient_id = ?", patientID).
+		Order("starts_at DESC").
+		Find(&appointments).Error; err != nil {
+		return nil, err
+	}
+	return appointments, nil
+}
+
 func (r *appointmentRepository) FindPendingReminders(ctx context.Context, from, to time.Time) ([]*models.Appointment, error) {
 	var appointments []*models.Appointment
 	if err := r.db.WithContext(ctx).
