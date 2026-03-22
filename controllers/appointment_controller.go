@@ -16,6 +16,22 @@ func NewAppointmentController(appointmentService *services.AppointmentService) *
 	return &AppointmentController{appointmentService: appointmentService}
 }
 
+func (ctrl *AppointmentController) Create(c *gin.Context) {
+	var req services.CreateAppointmentByPatientRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+	req.ProfessionalID = 1
+
+	appointment, err := ctrl.appointmentService.CreateAppointmentForPatient(c.Request.Context(), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, appointment)
+}
+
 func (ctrl *AppointmentController) GetAll(c *gin.Context) {
 	appointments, err := ctrl.appointmentService.GetAllAppointments(c.Request.Context())
 	if err != nil {

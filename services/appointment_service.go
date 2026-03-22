@@ -97,6 +97,47 @@ func (s *AppointmentService) CreateAppointment(ctx context.Context, req *CreateA
 	return appointment, nil
 }
 
+type CreateAppointmentByPatientRequest struct {
+	PatientID       int64     `json:"patient_id"`
+	ProfessionalID  int64     `json:"professional_id"`
+	StartsAt        time.Time `json:"starts_at"`
+	DurationMinutes int       `json:"duration_minutes"`
+}
+
+func (s *AppointmentService) CreateAppointmentForPatient(ctx context.Context, req *CreateAppointmentByPatientRequest) (*models.Appointment, error) {
+	patient, err := s.patientRepo.FindByID(ctx, req.PatientID)
+	if err != nil {
+		return nil, fmt.Errorf("patient not found: %w", err)
+	}
+
+	appointment := &models.Appointment{
+		PatientID:       req.PatientID,
+		ProfessionalID:  req.ProfessionalID,
+		StartsAt:        req.StartsAt,
+		DurationMinutes: req.DurationMinutes,
+		Status:          "scheduled",
+	}
+	if err := s.appointmentRepo.Create(ctx, appointment); err != nil {
+		return nil, fmt.Errorf("failed to create appointment: %w", err)
+	}
+	appointment.Patient = patient
+
+	message := fmt.Sprintf(
+		"✅ Turno confirmado\n\nFecha: %s\nDuración: %d minutos\n\nGracias por reservar.",
+		appointment.StartsAt.Format("02/01/2006 15:04"),
+		appointment.DurationMinutes,
+	)
+	if patient.Email != "" {
+		fmt.Printf("TODO: send email to %s: %s\n", patient.Email, message)
+	} else if patient.Phone != "" {
+		if err := s.whatsappSender.SendMessage(ctx, patient.Phone, message); err != nil {
+			fmt.Printf("Warning: failed to send WhatsApp confirmation: %v\n", err)
+		}
+	}
+
+	return appointment, nil
+}
+
 func (s *AppointmentService) GetAppointment(ctx context.Context, id int64) (*models.Appointment, error) {
 	return s.appointmentRepo.FindByID(ctx, id)
 }

@@ -59,6 +59,7 @@ func NewRouter(
 		// Appointments
 		appointments := protected.Group("/appointments")
 		{
+			appointments.POST("", appointmentController.Create)
 			appointments.GET("", appointmentController.GetAll)
 			appointments.GET("/:id", appointmentController.GetByID)
 			appointments.PUT("/:id", appointmentController.Update)
@@ -77,6 +78,7 @@ func NewRouter(
 		// Patients
 		patients := protected.Group("/patients")
 		{
+			patients.POST("", patientController.Create)
 			patients.GET("", patientController.GetAll)
 			patients.GET("/:id", patientController.GetByID)
 		}

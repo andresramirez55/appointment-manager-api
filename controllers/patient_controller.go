@@ -26,6 +26,24 @@ func (ctrl *PatientController) GetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, patients)
 }
 
+func (ctrl *PatientController) Create(c *gin.Context) {
+	var req services.CreatePatientRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+	if req.Name == "" || req.Phone == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "name and phone are required"})
+		return
+	}
+	patient, err := ctrl.patientService.CreatePatient(c.Request.Context(), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, patient)
+}
+
 func (ctrl *PatientController) GetByID(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
