@@ -58,11 +58,6 @@ func (ctrl *AppointmentController) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, appointment)
 }
 
-type UpdateAppointmentRequest struct {
-	Status string `json:"status"`
-	Notes  string `json:"notes"`
-}
-
 func (ctrl *AppointmentController) Update(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -70,13 +65,13 @@ func (ctrl *AppointmentController) Update(c *gin.Context) {
 		return
 	}
 
-	var req UpdateAppointmentRequest
+	var req services.UpdateAppointmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
-	if err := ctrl.appointmentService.UpdateAppointment(c.Request.Context(), id, req.Status, req.Notes); err != nil {
+	if err := ctrl.appointmentService.UpdateAppointment(c.Request.Context(), id, &req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

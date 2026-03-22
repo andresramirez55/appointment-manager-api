@@ -55,7 +55,16 @@ func main() {
 
 	// 5. Inicializar servicios
 	authService := services.NewAuthService(professionalRepo, cfg.JWTSecret)
-	appointmentService := services.NewAppointmentService(appointmentRepo, patientRepo, whatsappSender)
+
+	var emailService *services.EmailService
+	if cfg.Email.ResendAPIKey != "" {
+		emailService = services.NewEmailService(cfg.Email.ResendAPIKey, cfg.Email.FromEmail)
+		log.Println("📧 Email service: Resend")
+	} else {
+		log.Println("📧 Email service: disabled (RESEND_API_KEY not set)")
+	}
+
+	appointmentService := services.NewAppointmentService(appointmentRepo, patientRepo, whatsappSender, emailService)
 	availabilityService := services.NewAvailabilityService(availabilityRepo, appointmentRepo)
 	patientService := services.NewPatientService(patientRepo)
 	noteService := services.NewNoteService(noteRepo)

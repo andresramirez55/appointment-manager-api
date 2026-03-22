@@ -12,6 +12,12 @@ type Config struct {
 	DatabaseURL string
 	JWTSecret   string
 	WhatsApp    WhatsAppConfig
+	Email       EmailConfig
+}
+
+type EmailConfig struct {
+	ResendAPIKey string
+	FromEmail    string
 }
 
 type WhatsAppConfig struct {
@@ -34,6 +40,10 @@ func Load() (*Config, error) {
 			APIURL:       getEnv("EVOLUTION_API_URL", ""),
 			APIKey:       getEnv("EVOLUTION_API_KEY", ""),
 			InstanceName: getEnv("EVOLUTION_INSTANCE_NAME", ""),
+		},
+		Email: EmailConfig{
+			ResendAPIKey: getEnv("RESEND_API_KEY", ""),
+			FromEmail:    getEnv("FROM_EMAIL", ""),
 		},
 	}
 

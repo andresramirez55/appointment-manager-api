@@ -31,17 +31,20 @@ type AppointmentService struct {
 	appointmentRepo AppointmentRepository
 	patientRepo     PatientRepository
 	whatsappSender  WhatsAppSender
+	emailService    *EmailService
 }
 
 func NewAppointmentService(
 	appointmentRepo AppointmentRepository,
 	patientRepo PatientRepository,
 	whatsappSender WhatsAppSender,
+	emailService *EmailService,
 ) *AppointmentService {
 	return &AppointmentService{
 		appointmentRepo: appointmentRepo,
 		patientRepo:     patientRepo,
 		whatsappSender:  whatsappSender,
+		emailService:    emailService,
 	}
 }
 
@@ -127,8 +130,8 @@ func (s *AppointmentService) CreateAppointmentForPatient(ctx context.Context, re
 		appointment.StartsAt.Format("02/01/2006 15:04"),
 		appointment.DurationMinutes,
 	)
-	if patient.Email != "" {
-		fmt.Printf("TODO: send email to %s: %s\n", patient.Email, message)
+	if patient.Email != "" && s.emailService != nil {
+		s.emailService.SendAppointmentConfirmation(ctx, patient.Email, patient.Name, appointment.StartsAt, appointment.DurationMinutes)
 	} else if patient.Phone != "" {
 		if err := s.whatsappSender.SendMessage(ctx, patient.Phone, message); err != nil {
 			fmt.Printf("Warning: failed to send WhatsApp confirmation: %v\n", err)
@@ -146,17 +149,30 @@ func (s *AppointmentService) GetAllAppointments(ctx context.Context) ([]*models.
 	return s.appointmentRepo.FindAll(ctx)
 }
 
-func (s *AppointmentService) UpdateAppointment(ctx context.Context, id int64, status string, notes string) error {
+type UpdateAppointmentRequest struct {
+	Status          string     `json:"status"`
+	Notes           string     `json:"notes"`
+	StartsAt        *time.Time `json:"starts_at"`
+	DurationMinutes *int       `json:"duration_minutes"`
+}
+
+func (s *AppointmentService) UpdateAppointment(ctx context.Context, id int64, req *UpdateAppointmentRequest) error {
 	appointment, err := s.appointmentRepo.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	if status != "" {
-		appointment.Status = status
+	if req.Status != "" {
+		appointment.Status = req.Status
 	}
-	if notes != "" {
-		appointment.Notes = notes
+	if req.Notes != "" {
+		appointment.Notes = req.Notes
+	}
+	if req.StartsAt != nil {
+		appointment.StartsAt = *req.StartsAt
+	}
+	if req.DurationMinutes != nil {
+		appointment.DurationMinutes = *req.DurationMinutes
 	}
 
 	return s.appointmentRepo.Update(ctx, appointment)
@@ -189,16 +205,19 @@ func (s *AppointmentService) SendReminders(ctx context.Context) error {
 			appointment.Patient = patient
 		}
 
-		// Enviar recordatorio
-		message := fmt.Sprintf(
-			"📅 Recordatorio de turno\n\nTienes un turno mañana a las %s\nDuración: %d minutos\n\n¡Te esperamos!",
-			appointment.StartsAt.Format("15:04"),
-			appointment.DurationMinutes,
-		)
-
-		if err := s.whatsappSender.SendMessage(ctx, appointment.Patient.Phone, message); err != nil {
-			fmt.Printf("Warning: failed to send reminder for appointment %d: %v\n", appointment.ID, err)
-			continue
+		// Enviar recordatorio por email o WhatsApp
+		if appointment.Patient.Email != "" && s.emailService != nil {
+			s.emailService.SendAppointmentReminder(ctx, appointment.Patient.Email, appointment.Patient.Name, appointment.StartsAt, appointment.DurationMinutes)
+		} else if appointment.Patient.Phone != "" {
+			message := fmt.Sprintf(
+				"📅 Recordatorio de turno\n\nTienes un turno mañana a las %s\nDuración: %d minutos\n\n¡Te esperamos!",
+				appointment.StartsAt.Format("15:04"),
+				appointment.DurationMinutes,
+			)
+			if err := s.whatsappSender.SendMessage(ctx, appointment.Patient.Phone, message); err != nil {
+				fmt.Printf("Warning: failed to send reminder for appointment %d: %v\n", appointment.ID, err)
+				continue
+			}
 		}
 
 		// Marcar recordatorio como enviado
