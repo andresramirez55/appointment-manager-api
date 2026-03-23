@@ -17,7 +17,8 @@ func NewPatientController(patientService *services.PatientService) *PatientContr
 }
 
 func (ctrl *PatientController) GetAll(c *gin.Context) {
-	patients, err := ctrl.patientService.GetAllPatients(c.Request.Context())
+	professionalID := c.MustGet("professional_id").(int64)
+	patients, err := ctrl.patientService.GetAllPatients(c.Request.Context(), professionalID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -36,7 +37,8 @@ func (ctrl *PatientController) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "name and phone are required"})
 		return
 	}
-	patient, err := ctrl.patientService.CreatePatient(c.Request.Context(), &req)
+	professionalID := c.MustGet("professional_id").(int64)
+	patient, err := ctrl.patientService.CreatePatient(c.Request.Context(), professionalID, &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

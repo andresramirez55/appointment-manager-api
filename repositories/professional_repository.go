@@ -22,3 +22,7 @@ func (r *professionalRepository) FindByEmail(ctx context.Context, email string) 
 	}
 	return &professional, nil
 }
+
+func (r *professionalRepository) Create(ctx context.Context, professional *models.Professional) error {
+	return r.db.WithContext(ctx).Create(professional).Error
+}

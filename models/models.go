@@ -21,14 +21,15 @@ type Professional struct {
 
 // Patient representa a un paciente
 type Patient struct {
-	ID        int64          `gorm:"primaryKey" json:"id"`
-	Name      string         `gorm:"not null" json:"name"`
-	Phone     string         `gorm:"not null;index" json:"phone"` // Usado para WhatsApp
-	Email     string         `json:"email"`                       // Opcional
-	Notes     string         `gorm:"type:text" json:"notes"`      // Notas generales del paciente
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID             int64          `gorm:"primaryKey" json:"id"`
+	ProfessionalID int64          `gorm:"not null;index" json:"professional_id"`
+	Name           string         `gorm:"not null" json:"name"`
+	Phone          string         `gorm:"not null;index" json:"phone"` // Usado para WhatsApp
+	Email          string         `json:"email"`                       // Opcional
+	Notes          string         `gorm:"type:text" json:"notes"`      // Notas generales del paciente
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // AvailabilitySlot representa un horario regular de disponibilidad

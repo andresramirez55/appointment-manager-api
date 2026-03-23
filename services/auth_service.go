@@ -13,6 +13,7 @@ import (
 // ProfessionalRepository define métodos para acceso a profesionales
 type ProfessionalRepository interface {
 	FindByEmail(ctx context.Context, email string) (*models.Professional, error)
+	Create(ctx context.Context, professional *models.Professional) error
 }
 
 // AuthService maneja autenticación y generación de JWT
@@ -28,6 +29,14 @@ func NewAuthService(professionalRepo ProfessionalRepository, jwtSecret string) *
 	}
 }
 
+type RegisterRequest struct {
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	Name      string `json:"name"`
+	Phone     string `json:"phone"`
+	Specialty string `json:"specialty"`
+}
+
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -36,6 +45,36 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Token        string               `json:"token"`
 	Professional *models.Professional `json:"professional"`
+}
+
+func (s *AuthService) Register(ctx context.Context, req *RegisterRequest) (*LoginResponse, error) {
+	// Verificar que el email no esté en uso
+	if _, err := s.professionalRepo.FindByEmail(ctx, req.Email); err == nil {
+		return nil, fmt.Errorf("email already in use")
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	professional := &models.Professional{
+		Email:     req.Email,
+		Password:  string(hash),
+		Name:      req.Name,
+		Phone:     req.Phone,
+		Specialty: req.Specialty,
+	}
+	if err := s.professionalRepo.Create(ctx, professional); err != nil {
+		return nil, fmt.Errorf("failed to create account: %w", err)
+	}
+
+	token, err := s.generateJWT(professional.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	return &LoginResponse{Token: token, Professional: professional}, nil
 }
 
 func (s *AuthService) Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error) {

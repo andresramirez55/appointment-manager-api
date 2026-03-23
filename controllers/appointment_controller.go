@@ -22,7 +22,7 @@ func (ctrl *AppointmentController) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
-	req.ProfessionalID = 1
+	req.ProfessionalID = c.MustGet("professional_id").(int64)
 
 	appointment, err := ctrl.appointmentService.CreateAppointmentForPatient(c.Request.Context(), &req)
 	if err != nil {
@@ -38,7 +38,7 @@ func (ctrl *AppointmentController) CreateRecurring(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
-	req.ProfessionalID = 1
+	req.ProfessionalID = c.MustGet("professional_id").(int64)
 
 	appointments, err := ctrl.appointmentService.CreateRecurringAppointments(c.Request.Context(), &req)
 	if err != nil {
@@ -65,7 +65,8 @@ func (ctrl *AppointmentController) GetAll(c *gin.Context) {
 		return
 	}
 
-	appointments, err := ctrl.appointmentService.GetAllAppointments(c.Request.Context())
+	professionalID := c.MustGet("professional_id").(int64)
+	appointments, err := ctrl.appointmentService.GetAllAppointments(c.Request.Context(), professionalID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -31,11 +31,11 @@ func (r *appointmentRepository) FindByID(ctx context.Context, id int64) (*models
 	return &appointment, nil
 }
 
-func (r *appointmentRepository) FindAll(ctx context.Context) ([]*models.Appointment, error) {
+func (r *appointmentRepository) FindAll(ctx context.Context, professionalID int64) ([]*models.Appointment, error) {
 	var appointments []*models.Appointment
 	if err := r.db.WithContext(ctx).
 		Preload("Patient").
-		Preload("Professional").
+		Where("professional_id = ?", professionalID).
 		Order("starts_at DESC").
 		Find(&appointments).Error; err != nil {
 		return nil, err

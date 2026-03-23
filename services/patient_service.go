@@ -21,8 +21,8 @@ func (s *PatientService) GetPatient(ctx context.Context, id int64) (*models.Pati
 	return s.patientRepo.FindByID(ctx, id)
 }
 
-func (s *PatientService) GetAllPatients(ctx context.Context) ([]*models.Patient, error) {
-	return s.patientRepo.FindAll(ctx)
+func (s *PatientService) GetAllPatients(ctx context.Context, professionalID int64) ([]*models.Patient, error) {
+	return s.patientRepo.FindAll(ctx, professionalID)
 }
 
 type CreatePatientRequest struct {
@@ -47,12 +47,13 @@ func (s *PatientService) UpdatePatient(ctx context.Context, id int64, req *Creat
 	return patient, nil
 }
 
-func (s *PatientService) CreatePatient(ctx context.Context, req *CreatePatientRequest) (*models.Patient, error) {
+func (s *PatientService) CreatePatient(ctx context.Context, professionalID int64, req *CreatePatientRequest) (*models.Patient, error) {
 	patient := &models.Patient{
-		Name:  req.Name,
-		Phone: req.Phone,
-		Email: req.Email,
-		Notes: req.Notes,
+		ProfessionalID: professionalID,
+		Name:           req.Name,
+		Phone:          req.Phone,
+		Email:          req.Email,
+		Notes:          req.Notes,
 	}
 	if err := s.patientRepo.Create(ctx, patient); err != nil {
 		return nil, err

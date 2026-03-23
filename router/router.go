@@ -51,6 +51,7 @@ func NewRouter(
 	}
 
 	// Auth
+	api.POST("/auth/register", authController.Register)
 	api.POST("/auth/login", authController.Login)
 
 	// Protected routes (requieren autenticación)

@@ -22,7 +22,7 @@ func (ctrl *BlockController) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
-	req.ProfessionalID = 1
+	req.ProfessionalID = c.MustGet("professional_id").(int64)
 
 	block, err := ctrl.blockService.CreateBlock(c.Request.Context(), &req)
 	if err != nil {
@@ -33,7 +33,8 @@ func (ctrl *BlockController) Create(c *gin.Context) {
 }
 
 func (ctrl *BlockController) GetAll(c *gin.Context) {
-	blocks, err := ctrl.blockService.GetBlocks(c.Request.Context(), 1)
+	professionalID := c.MustGet("professional_id").(int64)
+	blocks, err := ctrl.blockService.GetBlocks(c.Request.Context(), professionalID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
