@@ -65,7 +65,7 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 func (s *AuthService) generateJWT(professionalID int64) (string, error) {
 	claims := jwt.MapClaims{
 		"professional_id": professionalID,
-		"exp":             time.Now().Add(24 * time.Hour).Unix(), // Expira en 24 horas
+		"exp":             time.Now().Add(30 * 24 * time.Hour).Unix(), // Expira en 30 días
 		"iat":             time.Now().Unix(),
 	}
 
