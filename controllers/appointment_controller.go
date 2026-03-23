@@ -32,6 +32,22 @@ func (ctrl *AppointmentController) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, appointment)
 }
 
+func (ctrl *AppointmentController) CreateRecurring(c *gin.Context) {
+	var req services.CreateRecurringRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+	req.ProfessionalID = 1
+
+	appointments, err := ctrl.appointmentService.CreateRecurringAppointments(c.Request.Context(), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, appointments)
+}
+
 func (ctrl *AppointmentController) GetAll(c *gin.Context) {
 	// Filtrar por paciente si se pasa patient_id
 	if patientIDStr := c.Query("patient_id"); patientIDStr != "" {

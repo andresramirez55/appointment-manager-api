@@ -60,6 +60,7 @@ func NewRouter(
 		appointments := protected.Group("/appointments")
 		{
 			appointments.POST("", appointmentController.Create)
+			appointments.POST("/recurring", appointmentController.CreateRecurring)
 			appointments.GET("", appointmentController.GetAll)
 			appointments.GET("/:id", appointmentController.GetByID)
 			appointments.PUT("/:id", appointmentController.Update)

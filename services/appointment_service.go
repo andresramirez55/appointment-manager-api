@@ -143,6 +143,53 @@ func (s *AppointmentService) CreateAppointmentForPatient(ctx context.Context, re
 	return appointment, nil
 }
 
+type CreateRecurringRequest struct {
+	PatientID       int64     `json:"patient_id"`
+	ProfessionalID  int64     `json:"professional_id"`
+	StartsAt        time.Time `json:"starts_at"`
+	DurationMinutes int       `json:"duration_minutes"`
+	FrequencyWeeks  int       `json:"frequency_weeks"` // 1 = semanal, 2 = quincenal
+	Occurrences     int       `json:"occurrences"`     // cantidad de turnos a crear
+}
+
+func (s *AppointmentService) CreateRecurringAppointments(ctx context.Context, req *CreateRecurringRequest) ([]*models.Appointment, error) {
+	patient, err := s.patientRepo.FindByID(ctx, req.PatientID)
+	if err != nil {
+		return nil, fmt.Errorf("patient not found: %w", err)
+	}
+
+	if req.FrequencyWeeks < 1 {
+		req.FrequencyWeeks = 1
+	}
+	if req.Occurrences < 1 || req.Occurrences > 52 {
+		req.Occurrences = 1
+	}
+
+	var created []*models.Appointment
+	for i := 0; i < req.Occurrences; i++ {
+		startsAt := req.StartsAt.AddDate(0, 0, i*req.FrequencyWeeks*7)
+		appointment := &models.Appointment{
+			PatientID:       req.PatientID,
+			ProfessionalID:  req.ProfessionalID,
+			StartsAt:        startsAt,
+			DurationMinutes: req.DurationMinutes,
+			Status:          "scheduled",
+		}
+		if err := s.appointmentRepo.Create(ctx, appointment); err != nil {
+			return nil, fmt.Errorf("failed to create appointment %d: %w", i+1, err)
+		}
+		appointment.Patient = patient
+		created = append(created, appointment)
+	}
+
+	// Notificar solo el primer turno
+	if len(created) > 0 && patient.Email != "" && s.emailService != nil {
+		s.emailService.SendAppointmentConfirmation(ctx, patient.Email, patient.Name, created[0].StartsAt, req.DurationMinutes)
+	}
+
+	return created, nil
+}
+
 func (s *AppointmentService) GetAppointment(ctx context.Context, id int64) (*models.Appointment, error) {
 	return s.appointmentRepo.FindByID(ctx, id)
 }
