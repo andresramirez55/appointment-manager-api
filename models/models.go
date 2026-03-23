@@ -22,7 +22,7 @@ type Professional struct {
 // Patient representa a un paciente
 type Patient struct {
 	ID             int64          `gorm:"primaryKey" json:"id"`
-	ProfessionalID int64          `gorm:"not null;index" json:"professional_id"`
+	ProfessionalID int64          `gorm:"not null;index;default:1" json:"professional_id"`
 	Name           string         `gorm:"not null" json:"name"`
 	Phone          string         `gorm:"not null;index" json:"phone"` // Usado para WhatsApp
 	Email          string         `json:"email"`                       // Opcional
