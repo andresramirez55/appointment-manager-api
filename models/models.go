@@ -79,6 +79,17 @@ type Appointment struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// Block representa un bloqueo de agenda
+type Block struct {
+	ID             int64          `gorm:"primaryKey" json:"id"`
+	ProfessionalID int64          `gorm:"not null;index" json:"professional_id"`
+	StartsAt       time.Time      `gorm:"not null;index" json:"starts_at"`
+	EndsAt         time.Time      `gorm:"not null" json:"ends_at"`
+	Reason         string         `json:"reason"`
+	CreatedAt      time.Time      `json:"created_at"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
 // SessionNote representa notas de una sesión
 type SessionNote struct {
 	ID            int64          `gorm:"primaryKey" json:"id"`

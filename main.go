@@ -36,6 +36,7 @@ func main() {
 	appointmentRepo := repositories.NewAppointmentRepository(database)
 	availabilityRepo := repositories.NewAvailabilityRepository(database)
 	noteRepo := repositories.NewNoteRepository(database)
+	blockRepo := repositories.NewBlockRepository(database)
 
 	log.Println("✅ Repositories initialized")
 
@@ -68,6 +69,7 @@ func main() {
 	availabilityService := services.NewAvailabilityService(availabilityRepo, appointmentRepo)
 	patientService := services.NewPatientService(patientRepo)
 	noteService := services.NewNoteService(noteRepo)
+	blockService := services.NewBlockService(blockRepo)
 
 	log.Println("✅ Services initialized")
 
@@ -78,6 +80,7 @@ func main() {
 	patientController := controllers.NewPatientController(patientService)
 	noteController := controllers.NewNoteController(noteService)
 	publicController := controllers.NewPublicController(availabilityService, appointmentService)
+	blockController := controllers.NewBlockController(blockService)
 
 	log.Println("✅ Controllers initialized")
 
@@ -90,6 +93,7 @@ func main() {
 		patientController,
 		noteController,
 		publicController,
+		blockController,
 	)
 
 	log.Println("✅ Router configured")

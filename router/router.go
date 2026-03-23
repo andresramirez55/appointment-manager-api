@@ -21,6 +21,7 @@ func NewRouter(
 	patientController *controllers.PatientController,
 	noteController *controllers.NoteController,
 	publicController *controllers.PublicController,
+	blockController *controllers.BlockController,
 ) *Router {
 	engine := gin.Default()
 
@@ -90,6 +91,14 @@ func NewRouter(
 		{
 			notes.POST("", noteController.Create)
 			notes.GET("", noteController.GetByAppointment)
+		}
+
+		// Blocks
+		blocks := protected.Group("/blocks")
+		{
+			blocks.POST("", blockController.Create)
+			blocks.GET("", blockController.GetAll)
+			blocks.DELETE("/:id", blockController.Delete)
 		}
 	}
 

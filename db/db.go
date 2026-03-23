@@ -44,6 +44,7 @@ func runMigrations(db *gorm.DB) error {
 		&models.AvailabilityOverride{},
 		&models.Appointment{},
 		&models.SessionNote{},
+		&models.Block{},
 	)
 }
 
