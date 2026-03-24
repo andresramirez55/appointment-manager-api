@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // EvolutionWhatsAppClient implementa WhatsAppSender usando Evolution API
@@ -35,7 +36,7 @@ type evolutionMessageRequest struct {
 }
 
 func (e *EvolutionWhatsAppClient) SendMessage(ctx context.Context, phone string, message string) error {
-	endpoint := fmt.Sprintf("%s/message/sendText/%s", e.apiURL, url.PathEscape(e.instanceName))
+	endpoint := fmt.Sprintf("%s/message/sendText/%s", e.apiURL, url.PathEscape(strings.TrimSpace(e.instanceName)))
 
 	reqBody := evolutionMessageRequest{
 		Number: phone,
