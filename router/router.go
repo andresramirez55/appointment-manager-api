@@ -94,6 +94,11 @@ func NewRouter(
 			notes.GET("", noteController.GetByAppointment)
 		}
 
+		// Profile
+		protected.GET("/profile", authController.GetProfile)
+		protected.PUT("/profile", authController.UpdateProfile)
+		protected.PUT("/profile/password", authController.UpdatePassword)
+
 		// Blocks
 		blocks := protected.Group("/blocks")
 		{

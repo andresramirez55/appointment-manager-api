@@ -13,7 +13,20 @@ import (
 // ProfessionalRepository define métodos para acceso a profesionales
 type ProfessionalRepository interface {
 	FindByEmail(ctx context.Context, email string) (*models.Professional, error)
+	FindByID(ctx context.Context, id int64) (*models.Professional, error)
 	Create(ctx context.Context, professional *models.Professional) error
+	Update(ctx context.Context, professional *models.Professional) error
+}
+
+type UpdateProfileRequest struct {
+	Name      string `json:"name"`
+	Phone     string `json:"phone"`
+	Specialty string `json:"specialty"`
+}
+
+type UpdatePasswordRequest struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
 }
 
 // AuthService maneja autenticación y generación de JWT
@@ -99,6 +112,40 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 		Token:        token,
 		Professional: professional,
 	}, nil
+}
+
+func (s *AuthService) GetProfile(ctx context.Context, professionalID int64) (*models.Professional, error) {
+	return s.professionalRepo.FindByID(ctx, professionalID)
+}
+
+func (s *AuthService) UpdateProfile(ctx context.Context, professionalID int64, req *UpdateProfileRequest) (*models.Professional, error) {
+	professional, err := s.professionalRepo.FindByID(ctx, professionalID)
+	if err != nil {
+		return nil, fmt.Errorf("professional not found")
+	}
+	professional.Name = req.Name
+	professional.Phone = req.Phone
+	professional.Specialty = req.Specialty
+	if err := s.professionalRepo.Update(ctx, professional); err != nil {
+		return nil, fmt.Errorf("failed to update profile: %w", err)
+	}
+	return professional, nil
+}
+
+func (s *AuthService) UpdatePassword(ctx context.Context, professionalID int64, req *UpdatePasswordRequest) error {
+	professional, err := s.professionalRepo.FindByID(ctx, professionalID)
+	if err != nil {
+		return fmt.Errorf("professional not found")
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(professional.Password), []byte(req.CurrentPassword)); err != nil {
+		return fmt.Errorf("contraseña actual incorrecta")
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+	professional.Password = string(hash)
+	return s.professionalRepo.Update(ctx, professional)
 }
 
 func (s *AuthService) generateJWT(professionalID int64) (string, error) {
