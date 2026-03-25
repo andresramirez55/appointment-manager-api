@@ -26,3 +26,15 @@ func (r *professionalRepository) FindByEmail(ctx context.Context, email string) 
 func (r *professionalRepository) Create(ctx context.Context, professional *models.Professional) error {
 	return r.db.WithContext(ctx).Create(professional).Error
 }
+
+func (r *professionalRepository) FindByID(ctx context.Context, id int64) (*models.Professional, error) {
+	var professional models.Professional
+	if err := r.db.WithContext(ctx).First(&professional, id).Error; err != nil {
+		return nil, err
+	}
+	return &professional, nil
+}
+
+func (r *professionalRepository) Update(ctx context.Context, professional *models.Professional) error {
+	return r.db.WithContext(ctx).Save(professional).Error
+}
