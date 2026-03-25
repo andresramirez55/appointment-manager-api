@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/andresramirez/psych-appointments/services"
@@ -11,19 +12,46 @@ import (
 type PublicController struct {
 	availabilityService *services.AvailabilityService
 	appointmentService  *services.AppointmentService
+	authService         *services.AuthService
 }
 
 func NewPublicController(
 	availabilityService *services.AvailabilityService,
 	appointmentService *services.AppointmentService,
+	authService *services.AuthService,
 ) *PublicController {
 	return &PublicController{
 		availabilityService: availabilityService,
 		appointmentService:  appointmentService,
+		authService:         authService,
 	}
 }
 
+func (ctrl *PublicController) GetProfessional(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+	professional, err := ctrl.authService.GetProfile(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Professional not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"id":        professional.ID,
+		"name":      professional.Name,
+		"specialty": professional.Specialty,
+	})
+}
+
 func (ctrl *PublicController) GetAvailableSlots(c *gin.Context) {
+	professionalID, err := strconv.ParseInt(c.Query("professional_id"), 10, 64)
+	if err != nil || professionalID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "professional_id required"})
+		return
+	}
+
 	dateStr := c.Query("date")
 	if dateStr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "date parameter required (YYYY-MM-DD)"})
@@ -36,8 +64,7 @@ func (ctrl *PublicController) GetAvailableSlots(c *gin.Context) {
 		return
 	}
 
-	// Por ahora, asumimos professional_id = 1 (único profesional)
-	slots, err := ctrl.availabilityService.GetAvailableSlots(c.Request.Context(), 1, date)
+	slots, err := ctrl.availabilityService.GetAvailableSlots(c.Request.Context(), professionalID, date)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -53,8 +80,10 @@ func (ctrl *PublicController) CreateAppointment(c *gin.Context) {
 		return
 	}
 
-	// Por ahora, asumimos professional_id = 1 (único profesional)
-	req.ProfessionalID = 1
+	if req.ProfessionalID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "professional_id required"})
+		return
+	}
 
 	appointment, err := ctrl.appointmentService.CreateAppointment(c.Request.Context(), &req)
 	if err != nil {

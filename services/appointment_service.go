@@ -16,6 +16,7 @@ type AppointmentRepository interface {
 	FindByPatient(ctx context.Context, patientID int64) ([]*models.Appointment, error)
 	Update(ctx context.Context, appointment *models.Appointment) error
 	Delete(ctx context.Context, id int64) error
+	FindByDate(ctx context.Context, professionalID int64, from, to time.Time) ([]*models.Appointment, error)
 	FindPendingReminders(ctx context.Context, from, to time.Time) ([]*models.Appointment, error)
 }
 

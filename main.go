@@ -79,7 +79,7 @@ func main() {
 	availabilityController := controllers.NewAvailabilityController(availabilityService)
 	patientController := controllers.NewPatientController(patientService)
 	noteController := controllers.NewNoteController(noteService)
-	publicController := controllers.NewPublicController(availabilityService, appointmentService)
+	publicController := controllers.NewPublicController(availabilityService, appointmentService, authService)
 	blockController := controllers.NewBlockController(blockService)
 
 	log.Println("✅ Controllers initialized")

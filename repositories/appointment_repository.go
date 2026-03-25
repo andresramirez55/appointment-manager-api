@@ -63,6 +63,16 @@ func (r *appointmentRepository) FindByPatient(ctx context.Context, patientID int
 	return appointments, nil
 }
 
+func (r *appointmentRepository) FindByDate(ctx context.Context, professionalID int64, from, to time.Time) ([]*models.Appointment, error) {
+	var appointments []*models.Appointment
+	if err := r.db.WithContext(ctx).
+		Where("professional_id = ? AND starts_at >= ? AND starts_at < ? AND status = ?", professionalID, from, to, "scheduled").
+		Find(&appointments).Error; err != nil {
+		return nil, err
+	}
+	return appointments, nil
+}
+
 func (r *appointmentRepository) FindPendingReminders(ctx context.Context, from, to time.Time) ([]*models.Appointment, error) {
 	var appointments []*models.Appointment
 	if err := r.db.WithContext(ctx).

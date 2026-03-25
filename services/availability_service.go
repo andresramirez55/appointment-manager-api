@@ -157,8 +157,26 @@ func (s *AvailabilityService) GetAvailableSlots(ctx context.Context, professiona
 		currentStart = slotEnd
 	}
 
-	// TODO: marcar slots ocupados buscando en appointments
-	// Para MVP, devolvemos todos como disponibles
+	// Marcar slots ocupados
+	dayEnd := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, date.Location())
+	bookedAppts, err := s.appointmentRepo.FindByDate(ctx, professionalID, currentStart.Truncate(24*time.Hour), dayEnd)
+	if err == nil {
+		for _, appt := range bookedAppts {
+			for _, slot := range timeSlots {
+				if appt.StartsAt.Equal(slot.StartsAt) {
+					slot.Available = false
+				}
+			}
+		}
+	}
 
-	return timeSlots, nil
+	// Filtrar solo los disponibles
+	var available []*TimeSlot
+	for _, slot := range timeSlots {
+		if slot.Available {
+			available = append(available, slot)
+		}
+	}
+
+	return available, nil
 }

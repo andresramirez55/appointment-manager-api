@@ -46,6 +46,7 @@ func NewRouter(
 	// Public routes (sin autenticación)
 	public := api.Group("/public")
 	{
+		public.GET("/professional/:id", publicController.GetProfessional)
 		public.GET("/slots", publicController.GetAvailableSlots)
 		public.POST("/appointments", publicController.CreateAppointment)
 	}
