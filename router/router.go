@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/andresramirez/psych-appointments/controllers"
 	"github.com/andresramirez/psych-appointments/middleware"
@@ -43,8 +44,9 @@ func NewRouter(
 
 	api := engine.Group("/api")
 
-	// Public routes (sin autenticación)
+	// Public routes (sin autenticación) — rate limited
 	public := api.Group("/public")
+	public.Use(middleware.RateLimit(20, time.Minute))
 	{
 		public.GET("/professional/:id", publicController.GetProfessional)
 		public.GET("/slots", publicController.GetAvailableSlots)
