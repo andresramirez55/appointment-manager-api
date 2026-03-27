@@ -31,13 +31,13 @@ func (r *appointmentRepository) FindByID(ctx context.Context, id int64) (*models
 	return &appointment, nil
 }
 
-func (r *appointmentRepository) FindAll(ctx context.Context, professionalID int64) ([]*models.Appointment, error) {
+func (r *appointmentRepository) FindAll(ctx context.Context, professionalID int64, consultorioID *int64) ([]*models.Appointment, error) {
 	var appointments []*models.Appointment
-	if err := r.db.WithContext(ctx).
-		Preload("Patient").
-		Where("professional_id = ?", professionalID).
-		Order("starts_at DESC").
-		Find(&appointments).Error; err != nil {
+	query := r.db.WithContext(ctx).Preload("Patient").Where("professional_id = ?", professionalID)
+	if consultorioID != nil {
+		query = query.Where("consultorio_id = ?", *consultorioID)
+	}
+	if err := query.Order("starts_at DESC").Find(&appointments).Error; err != nil {
 		return nil, err
 	}
 	return appointments, nil

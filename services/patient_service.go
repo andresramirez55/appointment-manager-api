@@ -21,15 +21,16 @@ func (s *PatientService) GetPatient(ctx context.Context, id int64) (*models.Pati
 	return s.patientRepo.FindByID(ctx, id)
 }
 
-func (s *PatientService) GetAllPatients(ctx context.Context, professionalID int64) ([]*models.Patient, error) {
-	return s.patientRepo.FindAll(ctx, professionalID)
+func (s *PatientService) GetAllPatients(ctx context.Context, professionalID int64, consultorioID *int64) ([]*models.Patient, error) {
+	return s.patientRepo.FindAll(ctx, professionalID, consultorioID)
 }
 
 type CreatePatientRequest struct {
-	Name  string `json:"name"`
-	Phone string `json:"phone"`
-	Email string `json:"email"`
-	Notes string `json:"notes"`
+	Name          string `json:"name"`
+	Phone         string `json:"phone"`
+	Email         string `json:"email"`
+	Notes         string `json:"notes"`
+	ConsultorioID *int64 `json:"consultorio_id"`
 }
 
 func (s *PatientService) UpdatePatient(ctx context.Context, id int64, req *CreatePatientRequest) (*models.Patient, error) {
@@ -41,6 +42,9 @@ func (s *PatientService) UpdatePatient(ctx context.Context, id int64, req *Creat
 	patient.Phone = req.Phone
 	patient.Email = req.Email
 	patient.Notes = req.Notes
+	if req.ConsultorioID != nil {
+		patient.ConsultorioID = req.ConsultorioID
+	}
 	if err := s.patientRepo.Update(ctx, patient); err != nil {
 		return nil, err
 	}
@@ -50,6 +54,7 @@ func (s *PatientService) UpdatePatient(ctx context.Context, id int64, req *Creat
 func (s *PatientService) CreatePatient(ctx context.Context, professionalID int64, req *CreatePatientRequest) (*models.Patient, error) {
 	patient := &models.Patient{
 		ProfessionalID: professionalID,
+		ConsultorioID:  req.ConsultorioID,
 		Name:           req.Name,
 		Phone:          req.Phone,
 		Email:          req.Email,

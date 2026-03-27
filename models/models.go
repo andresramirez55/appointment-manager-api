@@ -19,10 +19,22 @@ type Professional struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// Consultorio representa un consultorio del profesional
+type Consultorio struct {
+	ID             int64          `gorm:"primaryKey" json:"id"`
+	ProfessionalID int64          `gorm:"not null;index" json:"professional_id"`
+	Name           string         `gorm:"not null" json:"name"`
+	Address        string         `json:"address"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
 // Patient representa a un paciente
 type Patient struct {
 	ID             int64          `gorm:"primaryKey" json:"id"`
 	ProfessionalID int64          `gorm:"not null;index;default:1" json:"professional_id"`
+	ConsultorioID  *int64         `gorm:"index" json:"consultorio_id"`
 	Name           string         `gorm:"not null" json:"name"`
 	Phone          string         `gorm:"not null;index" json:"phone"` // Usado para WhatsApp
 	Email          string         `json:"email"`                       // Opcional
@@ -70,6 +82,7 @@ type Appointment struct {
 	Patient         *Patient       `gorm:"foreignKey:PatientID" json:"patient,omitempty"`
 	ProfessionalID  int64          `gorm:"not null;index" json:"professional_id"`
 	Professional    *Professional  `gorm:"foreignKey:ProfessionalID" json:"professional,omitempty"`
+	ConsultorioID   *int64         `gorm:"index" json:"consultorio_id"`
 	StartsAt        time.Time      `gorm:"not null;index" json:"starts_at"`
 	DurationMinutes int            `gorm:"not null" json:"duration_minutes"`
 	Status          string         `gorm:"not null;default:'scheduled'" json:"status"` // scheduled, completed, cancelled

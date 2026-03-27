@@ -66,7 +66,14 @@ func (ctrl *AppointmentController) GetAll(c *gin.Context) {
 	}
 
 	professionalID := c.MustGet("professional_id").(int64)
-	appointments, err := ctrl.appointmentService.GetAllAppointments(c.Request.Context(), professionalID)
+	var consultorioID *int64
+	if cidStr := c.Query("consultorio_id"); cidStr != "" {
+		cid, err := strconv.ParseInt(cidStr, 10, 64)
+		if err == nil {
+			consultorioID = &cid
+		}
+	}
+	appointments, err := ctrl.appointmentService.GetAllAppointments(c.Request.Context(), professionalID, consultorioID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

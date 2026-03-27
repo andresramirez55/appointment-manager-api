@@ -20,7 +20,7 @@ func generateCancelToken() string {
 type AppointmentRepository interface {
 	Create(ctx context.Context, appointment *models.Appointment) error
 	FindByID(ctx context.Context, id int64) (*models.Appointment, error)
-	FindAll(ctx context.Context, professionalID int64) ([]*models.Appointment, error)
+	FindAll(ctx context.Context, professionalID int64, consultorioID *int64) ([]*models.Appointment, error)
 	FindByPatient(ctx context.Context, patientID int64) ([]*models.Appointment, error)
 	Update(ctx context.Context, appointment *models.Appointment) error
 	Delete(ctx context.Context, id int64) error
@@ -35,7 +35,7 @@ type PatientRepository interface {
 	Update(ctx context.Context, patient *models.Patient) error
 	FindByPhone(ctx context.Context, phone string, professionalID int64) (*models.Patient, error)
 	FindByID(ctx context.Context, id int64) (*models.Patient, error)
-	FindAll(ctx context.Context, professionalID int64) ([]*models.Patient, error)
+	FindAll(ctx context.Context, professionalID int64, consultorioID *int64) ([]*models.Patient, error)
 }
 
 // ProfessionalLookup permite obtener datos del profesional
@@ -143,6 +143,7 @@ func (s *AppointmentService) CreateAppointmentForPatient(ctx context.Context, re
 	appointment := &models.Appointment{
 		PatientID:       req.PatientID,
 		ProfessionalID:  req.ProfessionalID,
+		ConsultorioID:   patient.ConsultorioID,
 		StartsAt:        req.StartsAt,
 		DurationMinutes: req.DurationMinutes,
 		Status:          "scheduled",
@@ -197,6 +198,7 @@ func (s *AppointmentService) CreateRecurringAppointments(ctx context.Context, re
 		appointment := &models.Appointment{
 			PatientID:       req.PatientID,
 			ProfessionalID:  req.ProfessionalID,
+			ConsultorioID:   patient.ConsultorioID,
 			StartsAt:        startsAt,
 			DurationMinutes: req.DurationMinutes,
 			Status:          "scheduled",
@@ -221,8 +223,8 @@ func (s *AppointmentService) GetAppointment(ctx context.Context, id int64) (*mod
 	return s.appointmentRepo.FindByID(ctx, id)
 }
 
-func (s *AppointmentService) GetAllAppointments(ctx context.Context, professionalID int64) ([]*models.Appointment, error) {
-	return s.appointmentRepo.FindAll(ctx, professionalID)
+func (s *AppointmentService) GetAllAppointments(ctx context.Context, professionalID int64, consultorioID *int64) ([]*models.Appointment, error) {
+	return s.appointmentRepo.FindAll(ctx, professionalID, consultorioID)
 }
 
 func (s *AppointmentService) GetAppointmentsByPatient(ctx context.Context, patientID int64) ([]*models.Appointment, error) {

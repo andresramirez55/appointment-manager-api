@@ -39,9 +39,13 @@ func (r *patientRepository) FindByID(ctx context.Context, id int64) (*models.Pat
 	return &patient, nil
 }
 
-func (r *patientRepository) FindAll(ctx context.Context, professionalID int64) ([]*models.Patient, error) {
+func (r *patientRepository) FindAll(ctx context.Context, professionalID int64, consultorioID *int64) ([]*models.Patient, error) {
 	var patients []*models.Patient
-	if err := r.db.WithContext(ctx).Where("professional_id = ?", professionalID).Order("name ASC").Find(&patients).Error; err != nil {
+	query := r.db.WithContext(ctx).Where("professional_id = ?", professionalID)
+	if consultorioID != nil {
+		query = query.Where("consultorio_id = ?", *consultorioID)
+	}
+	if err := query.Order("name ASC").Find(&patients).Error; err != nil {
 		return nil, err
 	}
 	return patients, nil

@@ -18,7 +18,14 @@ func NewPatientController(patientService *services.PatientService) *PatientContr
 
 func (ctrl *PatientController) GetAll(c *gin.Context) {
 	professionalID := c.MustGet("professional_id").(int64)
-	patients, err := ctrl.patientService.GetAllPatients(c.Request.Context(), professionalID)
+	var consultorioID *int64
+	if cidStr := c.Query("consultorio_id"); cidStr != "" {
+		cid, err := strconv.ParseInt(cidStr, 10, 64)
+		if err == nil {
+			consultorioID = &cid
+		}
+	}
+	patients, err := ctrl.patientService.GetAllPatients(c.Request.Context(), professionalID, consultorioID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

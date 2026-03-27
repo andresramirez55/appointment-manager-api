@@ -23,6 +23,7 @@ func NewRouter(
 	noteController *controllers.NoteController,
 	publicController *controllers.PublicController,
 	blockController *controllers.BlockController,
+	consultorioController *controllers.ConsultorioController,
 ) *Router {
 	engine := gin.Default()
 
@@ -110,6 +111,15 @@ func NewRouter(
 			blocks.POST("", blockController.Create)
 			blocks.GET("", blockController.GetAll)
 			blocks.DELETE("/:id", blockController.Delete)
+		}
+
+		// Consultorios
+		consultorios := protected.Group("/consultorios")
+		{
+			consultorios.GET("", consultorioController.GetAll)
+			consultorios.POST("", consultorioController.Create)
+			consultorios.PUT("/:id", consultorioController.Update)
+			consultorios.DELETE("/:id", consultorioController.Delete)
 		}
 	}
 
