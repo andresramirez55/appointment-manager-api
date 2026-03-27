@@ -29,25 +29,33 @@ type PatientRepository interface {
 	FindAll(ctx context.Context, professionalID int64) ([]*models.Patient, error)
 }
 
+// ProfessionalLookup permite obtener datos del profesional
+type ProfessionalLookup interface {
+	FindByID(ctx context.Context, id int64) (*models.Professional, error)
+}
+
 // AppointmentService maneja lógica de turnos
 type AppointmentService struct {
-	appointmentRepo AppointmentRepository
-	patientRepo     PatientRepository
-	whatsappSender  WhatsAppSender
-	emailService    *EmailService
+	appointmentRepo  AppointmentRepository
+	patientRepo      PatientRepository
+	professionalRepo ProfessionalLookup
+	whatsappSender   WhatsAppSender
+	emailService     *EmailService
 }
 
 func NewAppointmentService(
 	appointmentRepo AppointmentRepository,
 	patientRepo PatientRepository,
+	professionalRepo ProfessionalLookup,
 	whatsappSender WhatsAppSender,
 	emailService *EmailService,
 ) *AppointmentService {
 	return &AppointmentService{
-		appointmentRepo: appointmentRepo,
-		patientRepo:     patientRepo,
-		whatsappSender:  whatsappSender,
-		emailService:    emailService,
+		appointmentRepo:  appointmentRepo,
+		patientRepo:      patientRepo,
+		professionalRepo: professionalRepo,
+		whatsappSender:   whatsappSender,
+		emailService:     emailService,
 	}
 }
 
@@ -89,15 +97,21 @@ func (s *AppointmentService) CreateAppointment(ctx context.Context, req *CreateA
 	// Cargar relaciones
 	appointment.Patient = patient
 
-	// Enviar confirmación por WhatsApp
+	// Enviar confirmación por WhatsApp al paciente
 	message := fmt.Sprintf(
 		"✅ Turno confirmado\n\nFecha: %s\nDuración: %d minutos\n\nGracias por reservar.",
 		appointment.StartsAt.Format("02/01/2006 15:04"),
 		appointment.DurationMinutes,
 	)
 	if err := s.whatsappSender.SendMessage(ctx, patient.Phone, message); err != nil {
-		// Log error pero no fallar la creación del turno
 		fmt.Printf("Warning: failed to send WhatsApp confirmation: %v\n", err)
+	}
+
+	// Notificar al profesional por email
+	if s.emailService != nil {
+		if prof, err := s.professionalRepo.FindByID(ctx, req.ProfessionalID); err == nil && prof.Email != "" {
+			s.emailService.SendNewBookingNotification(ctx, prof.Email, prof.Name, patient.Name, appointment.StartsAt, appointment.DurationMinutes)
+		}
 	}
 
 	return appointment, nil

@@ -65,7 +65,7 @@ func main() {
 		log.Println("📧 Email service: disabled (RESEND_API_KEY not set)")
 	}
 
-	appointmentService := services.NewAppointmentService(appointmentRepo, patientRepo, whatsappSender, emailService)
+	appointmentService := services.NewAppointmentService(appointmentRepo, patientRepo, professionalRepo, whatsappSender, emailService)
 	availabilityService := services.NewAvailabilityService(availabilityRepo, appointmentRepo)
 	patientService := services.NewPatientService(patientRepo)
 	noteService := services.NewNoteService(noteRepo)
