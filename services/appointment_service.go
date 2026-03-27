@@ -222,6 +222,8 @@ type UpdateAppointmentRequest struct {
 	Notes           string     `json:"notes"`
 	StartsAt        *time.Time `json:"starts_at"`
 	DurationMinutes *int       `json:"duration_minutes"`
+	Paid            *bool      `json:"paid"`
+	PaymentMethod   string     `json:"payment_method"`
 }
 
 func (s *AppointmentService) UpdateAppointment(ctx context.Context, id int64, req *UpdateAppointmentRequest) error {
@@ -241,6 +243,10 @@ func (s *AppointmentService) UpdateAppointment(ctx context.Context, id int64, re
 	}
 	if req.DurationMinutes != nil {
 		appointment.DurationMinutes = *req.DurationMinutes
+	}
+	if req.Paid != nil {
+		appointment.Paid = *req.Paid
+		appointment.PaymentMethod = req.PaymentMethod
 	}
 
 	return s.appointmentRepo.Update(ctx, appointment)
