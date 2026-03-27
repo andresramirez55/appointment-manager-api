@@ -73,6 +73,18 @@ func (r *appointmentRepository) FindByDate(ctx context.Context, professionalID i
 	return appointments, nil
 }
 
+func (r *appointmentRepository) FindByCancelToken(ctx context.Context, token string) (*models.Appointment, error) {
+	var appointment models.Appointment
+	if err := r.db.WithContext(ctx).
+		Preload("Patient").
+		Preload("Professional").
+		Where("cancel_token = ?", token).
+		First(&appointment).Error; err != nil {
+		return nil, err
+	}
+	return &appointment, nil
+}
+
 func (r *appointmentRepository) FindPendingReminders(ctx context.Context, from, to time.Time) ([]*models.Appointment, error) {
 	var appointments []*models.Appointment
 	if err := r.db.WithContext(ctx).

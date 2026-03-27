@@ -73,6 +73,39 @@ func (ctrl *PublicController) GetAvailableSlots(c *gin.Context) {
 	c.JSON(http.StatusOK, slots)
 }
 
+func (ctrl *PublicController) GetAppointmentByToken(c *gin.Context) {
+	token := c.Param("token")
+	appointment, err := ctrl.appointmentService.GetByCancelToken(c.Request.Context(), token)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Turno no encontrado"})
+		return
+	}
+	patientName := ""
+	if appointment.Patient != nil {
+		patientName = appointment.Patient.Name
+	}
+	professionalName := ""
+	if appointment.Professional != nil {
+		professionalName = appointment.Professional.Name
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"patient_name":      patientName,
+		"professional_name": professionalName,
+		"starts_at":         appointment.StartsAt,
+		"duration_minutes":  appointment.DurationMinutes,
+		"status":            appointment.Status,
+	})
+}
+
+func (ctrl *PublicController) CancelByToken(c *gin.Context) {
+	token := c.Param("token")
+	if err := ctrl.appointmentService.CancelByToken(c.Request.Context(), token); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Turno cancelado"})
+}
+
 func (ctrl *PublicController) CreateAppointment(c *gin.Context) {
 	var req services.CreateAppointmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

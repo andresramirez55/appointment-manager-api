@@ -59,7 +59,7 @@ func main() {
 
 	var emailService *services.EmailService
 	if cfg.Email.ResendAPIKey != "" {
-		emailService = services.NewEmailService(cfg.Email.ResendAPIKey, cfg.Email.FromEmail)
+		emailService = services.NewEmailService(cfg.Email.ResendAPIKey, cfg.Email.FromEmail, cfg.Email.FrontendURL)
 		log.Println("📧 Email service: Resend")
 	} else {
 		log.Println("📧 Email service: disabled (RESEND_API_KEY not set)")

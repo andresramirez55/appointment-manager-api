@@ -2,11 +2,19 @@ package services
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"time"
 
 	"github.com/andresramirez/psych-appointments/models"
 )
+
+func generateCancelToken() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return hex.EncodeToString(b)
+}
 
 // AppointmentRepository define métodos para acceso a turnos
 type AppointmentRepository interface {
@@ -18,6 +26,7 @@ type AppointmentRepository interface {
 	Delete(ctx context.Context, id int64) error
 	FindByDate(ctx context.Context, professionalID int64, from, to time.Time) ([]*models.Appointment, error)
 	FindPendingReminders(ctx context.Context, from, to time.Time) ([]*models.Appointment, error)
+	FindByCancelToken(ctx context.Context, token string) (*models.Appointment, error)
 }
 
 // PatientRepository define métodos para acceso a pacientes
@@ -88,6 +97,7 @@ func (s *AppointmentService) CreateAppointment(ctx context.Context, req *CreateA
 		StartsAt:        req.StartsAt,
 		DurationMinutes: req.DurationMinutes,
 		Status:          "scheduled",
+		CancelToken:     generateCancelToken(),
 	}
 
 	if err := s.appointmentRepo.Create(ctx, appointment); err != nil {
@@ -136,6 +146,7 @@ func (s *AppointmentService) CreateAppointmentForPatient(ctx context.Context, re
 		StartsAt:        req.StartsAt,
 		DurationMinutes: req.DurationMinutes,
 		Status:          "scheduled",
+		CancelToken:     generateCancelToken(),
 	}
 	if err := s.appointmentRepo.Create(ctx, appointment); err != nil {
 		return nil, fmt.Errorf("failed to create appointment: %w", err)
@@ -148,7 +159,7 @@ func (s *AppointmentService) CreateAppointmentForPatient(ctx context.Context, re
 		appointment.DurationMinutes,
 	)
 	if patient.Email != "" && s.emailService != nil {
-		s.emailService.SendAppointmentConfirmation(ctx, patient.Email, patient.Name, appointment.StartsAt, appointment.DurationMinutes)
+		s.emailService.SendAppointmentConfirmation(ctx, patient.Email, patient.Name, appointment.StartsAt, appointment.DurationMinutes, appointment.CancelToken)
 	} else if patient.Phone != "" {
 		if err := s.whatsappSender.SendMessage(ctx, patient.Phone, message); err != nil {
 			fmt.Printf("Warning: failed to send WhatsApp confirmation: %v\n", err)
@@ -189,6 +200,7 @@ func (s *AppointmentService) CreateRecurringAppointments(ctx context.Context, re
 			StartsAt:        startsAt,
 			DurationMinutes: req.DurationMinutes,
 			Status:          "scheduled",
+			CancelToken:     generateCancelToken(),
 		}
 		if err := s.appointmentRepo.Create(ctx, appointment); err != nil {
 			return nil, fmt.Errorf("failed to create appointment %d: %w", i+1, err)
@@ -199,7 +211,7 @@ func (s *AppointmentService) CreateRecurringAppointments(ctx context.Context, re
 
 	// Notificar solo el primer turno
 	if len(created) > 0 && patient.Email != "" && s.emailService != nil {
-		s.emailService.SendAppointmentConfirmation(ctx, patient.Email, patient.Name, created[0].StartsAt, req.DurationMinutes)
+		s.emailService.SendAppointmentConfirmation(ctx, patient.Email, patient.Name, created[0].StartsAt, req.DurationMinutes, created[0].CancelToken)
 	}
 
 	return created, nil
@@ -254,6 +266,22 @@ func (s *AppointmentService) UpdateAppointment(ctx context.Context, id int64, re
 
 func (s *AppointmentService) CancelAppointment(ctx context.Context, id int64) error {
 	return s.appointmentRepo.Delete(ctx, id)
+}
+
+func (s *AppointmentService) GetByCancelToken(ctx context.Context, token string) (*models.Appointment, error) {
+	return s.appointmentRepo.FindByCancelToken(ctx, token)
+}
+
+func (s *AppointmentService) CancelByToken(ctx context.Context, token string) error {
+	appointment, err := s.appointmentRepo.FindByCancelToken(ctx, token)
+	if err != nil {
+		return fmt.Errorf("turno no encontrado")
+	}
+	if appointment.Status != "scheduled" {
+		return fmt.Errorf("el turno no puede cancelarse")
+	}
+	appointment.Status = "cancelled"
+	return s.appointmentRepo.Update(ctx, appointment)
 }
 
 // SendReminders busca turnos que necesitan recordatorio y envía WhatsApp

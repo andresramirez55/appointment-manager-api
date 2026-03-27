@@ -10,24 +10,34 @@ import (
 )
 
 type EmailService struct {
-	client    *resend.Client
-	fromEmail string
+	client      *resend.Client
+	fromEmail   string
+	frontendURL string
 }
 
-func NewEmailService(apiKey, fromEmail string) *EmailService {
+func NewEmailService(apiKey, fromEmail, frontendURL string) *EmailService {
 	return &EmailService{
-		client:    resend.NewClient(apiKey),
-		fromEmail: fromEmail,
+		client:      resend.NewClient(apiKey),
+		fromEmail:   fromEmail,
+		frontendURL: frontendURL,
 	}
 }
 
-func (s *EmailService) SendAppointmentConfirmation(ctx context.Context, toEmail, patientName string, startsAt time.Time, durationMinutes int) {
+func (s *EmailService) SendAppointmentConfirmation(ctx context.Context, toEmail, patientName string, startsAt time.Time, durationMinutes int, cancelToken string) {
 	if toEmail == "" {
 		return
 	}
 
 	dateStr := startsAt.Format("02/01/2006")
 	timeStr := startsAt.Format("15:04")
+
+	cancelLink := ""
+	if s.frontendURL != "" && cancelToken != "" {
+		cancelLink = fmt.Sprintf(`
+  <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+    <a href="%s/cancel/%s" style="color: #94a3b8; font-size: 12px;">¿No podés asistir? Cancelá tu turno desde aquí.</a>
+  </div>`, s.frontendURL, cancelToken)
+	}
 
 	html := fmt.Sprintf(`
 <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; color: #1e293b;">
@@ -39,7 +49,8 @@ func (s *EmailService) SendAppointmentConfirmation(ctx context.Context, toEmail,
     <p style="margin: 0; font-size: 14px;"><strong>Duración:</strong> %d minutos</p>
   </div>
   <p style="color: #94a3b8; font-size: 12px;">Si necesitás reprogramar, contactá al profesional.</p>
-</div>`, patientName, dateStr, timeStr, durationMinutes)
+  %s
+</div>`, patientName, dateStr, timeStr, durationMinutes, cancelLink)
 
 	params := &resend.SendEmailRequest{
 		From:    s.fromEmail,

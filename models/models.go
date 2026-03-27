@@ -73,6 +73,7 @@ type Appointment struct {
 	StartsAt        time.Time      `gorm:"not null;index" json:"starts_at"`
 	DurationMinutes int            `gorm:"not null" json:"duration_minutes"`
 	Status          string         `gorm:"not null;default:'scheduled'" json:"status"` // scheduled, completed, cancelled
+	CancelToken     string         `gorm:"uniqueIndex" json:"-"`
 	ReminderSentAt  *time.Time     `json:"reminder_sent_at"`                           // NULL si no se envió
 	Paid            bool           `gorm:"default:false" json:"paid"`
 	PaymentMethod   string         `json:"payment_method"`                             // efectivo, transferencia, otro

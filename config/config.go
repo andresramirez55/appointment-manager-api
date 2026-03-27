@@ -18,6 +18,7 @@ type Config struct {
 type EmailConfig struct {
 	ResendAPIKey string
 	FromEmail    string
+	FrontendURL  string
 }
 
 type WhatsAppConfig struct {
@@ -44,6 +45,7 @@ func Load() (*Config, error) {
 		Email: EmailConfig{
 			ResendAPIKey: getEnv("RESEND_API_KEY", ""),
 			FromEmail:    getEnv("FROM_EMAIL", ""),
+			FrontendURL:  getEnv("FRONTEND_URL", ""),
 		},
 	}
 

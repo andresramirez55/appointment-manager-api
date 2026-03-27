@@ -51,6 +51,8 @@ func NewRouter(
 		public.GET("/professional/:id", publicController.GetProfessional)
 		public.GET("/slots", publicController.GetAvailableSlots)
 		public.POST("/appointments", publicController.CreateAppointment)
+		public.GET("/appointments/:token", publicController.GetAppointmentByToken)
+		public.POST("/appointments/:token/cancel", publicController.CancelByToken)
 	}
 
 	// Auth
