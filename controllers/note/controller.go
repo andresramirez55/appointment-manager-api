@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -8,15 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type NoteController struct {
+type Controller struct {
 	noteService *services.NoteService
 }
 
-func NewNoteController(noteService *services.NoteService) *NoteController {
-	return &NoteController{noteService: noteService}
+func New(noteService *services.NoteService) *Controller {
+	return &Controller{noteService: noteService}
 }
 
-func (ctrl *NoteController) Create(c *gin.Context) {
+func (ctrl *Controller) Create(c *gin.Context) {
 	var req services.CreateNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
@@ -32,7 +32,7 @@ func (ctrl *NoteController) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, note)
 }
 
-func (ctrl *NoteController) GetByAppointment(c *gin.Context) {
+func (ctrl *Controller) GetByAppointment(c *gin.Context) {
 	appointmentID, err := strconv.ParseInt(c.Query("appointment_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid appointment_id"})

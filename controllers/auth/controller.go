@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -7,15 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AuthController struct {
+type Controller struct {
 	authService *services.AuthService
 }
 
-func NewAuthController(authService *services.AuthService) *AuthController {
-	return &AuthController{authService: authService}
+func New(authService *services.AuthService) *Controller {
+	return &Controller{authService: authService}
 }
 
-func (ctrl *AuthController) Register(c *gin.Context) {
+func (ctrl *Controller) Register(c *gin.Context) {
 	var req services.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
@@ -34,7 +34,7 @@ func (ctrl *AuthController) Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
-func (ctrl *AuthController) GetProfile(c *gin.Context) {
+func (ctrl *Controller) GetProfile(c *gin.Context) {
 	professionalID := c.MustGet("professional_id").(int64)
 	professional, err := ctrl.authService.GetProfile(c.Request.Context(), professionalID)
 	if err != nil {
@@ -44,7 +44,7 @@ func (ctrl *AuthController) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, professional)
 }
 
-func (ctrl *AuthController) UpdateProfile(c *gin.Context) {
+func (ctrl *Controller) UpdateProfile(c *gin.Context) {
 	professionalID := c.MustGet("professional_id").(int64)
 	var req services.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -59,7 +59,7 @@ func (ctrl *AuthController) UpdateProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, professional)
 }
 
-func (ctrl *AuthController) UpdatePassword(c *gin.Context) {
+func (ctrl *Controller) UpdatePassword(c *gin.Context) {
 	professionalID := c.MustGet("professional_id").(int64)
 	var req services.UpdatePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -73,7 +73,7 @@ func (ctrl *AuthController) UpdatePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Contraseña actualizada"})
 }
 
-func (ctrl *AuthController) Login(c *gin.Context) {
+func (ctrl *Controller) Login(c *gin.Context) {
 	var req services.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})

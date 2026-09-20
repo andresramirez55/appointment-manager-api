@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -8,15 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type PatientController struct {
+type Controller struct {
 	patientService *services.PatientService
 }
 
-func NewPatientController(patientService *services.PatientService) *PatientController {
-	return &PatientController{patientService: patientService}
+func New(patientService *services.PatientService) *Controller {
+	return &Controller{patientService: patientService}
 }
 
-func (ctrl *PatientController) GetAll(c *gin.Context) {
+func (ctrl *Controller) GetAll(c *gin.Context) {
 	professionalID := c.MustGet("professional_id").(int64)
 	var consultorioID *int64
 	if cidStr := c.Query("consultorio_id"); cidStr != "" {
@@ -34,7 +34,7 @@ func (ctrl *PatientController) GetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, patients)
 }
 
-func (ctrl *PatientController) Create(c *gin.Context) {
+func (ctrl *Controller) Create(c *gin.Context) {
 	var req services.CreatePatientRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
@@ -53,7 +53,7 @@ func (ctrl *PatientController) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, patient)
 }
 
-func (ctrl *PatientController) GetByID(c *gin.Context) {
+func (ctrl *Controller) GetByID(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
@@ -69,7 +69,7 @@ func (ctrl *PatientController) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, patient)
 }
 
-func (ctrl *PatientController) Update(c *gin.Context) {
+func (ctrl *Controller) Update(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})

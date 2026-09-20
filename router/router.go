@@ -4,7 +4,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/andresramirez/psych-appointments/controllers"
+	appointmentcontroller "github.com/andresramirez/psych-appointments/controllers/appointment"
+	authcontroller "github.com/andresramirez/psych-appointments/controllers/auth"
+	availabilitycontroller "github.com/andresramirez/psych-appointments/controllers/availability"
+	blockcontroller "github.com/andresramirez/psych-appointments/controllers/block"
+	notecontroller "github.com/andresramirez/psych-appointments/controllers/note"
+	officecontroller "github.com/andresramirez/psych-appointments/controllers/office"
+	patientcontroller "github.com/andresramirez/psych-appointments/controllers/patient"
+	publiccontroller "github.com/andresramirez/psych-appointments/controllers/public"
 	"github.com/andresramirez/psych-appointments/middleware"
 	"github.com/andresramirez/psych-appointments/services"
 	"github.com/gin-gonic/gin"
@@ -16,14 +23,14 @@ type Router struct {
 
 func NewRouter(
 	authService *services.AuthService,
-	authController *controllers.AuthController,
-	appointmentController *controllers.AppointmentController,
-	availabilityController *controllers.AvailabilityController,
-	patientController *controllers.PatientController,
-	noteController *controllers.NoteController,
-	publicController *controllers.PublicController,
-	blockController *controllers.BlockController,
-	consultorioController *controllers.ConsultorioController,
+	authController *authcontroller.Controller,
+	appointmentController *appointmentcontroller.Controller,
+	availabilityController *availabilitycontroller.Controller,
+	patientController *patientcontroller.Controller,
+	noteController *notecontroller.Controller,
+	publicController *publiccontroller.Controller,
+	blockController *blockcontroller.Controller,
+	officeController *officecontroller.Controller,
 ) *Router {
 	engine := gin.Default()
 
@@ -116,10 +123,10 @@ func NewRouter(
 		// Consultorios
 		consultorios := protected.Group("/consultorios")
 		{
-			consultorios.GET("", consultorioController.GetAll)
-			consultorios.POST("", consultorioController.Create)
-			consultorios.PUT("/:id", consultorioController.Update)
-			consultorios.DELETE("/:id", consultorioController.Delete)
+			consultorios.GET("", officeController.GetAll)
+			consultorios.POST("", officeController.Create)
+			consultorios.PUT("/:id", officeController.Update)
+			consultorios.DELETE("/:id", officeController.Delete)
 		}
 	}
 

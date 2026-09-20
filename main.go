@@ -5,7 +5,14 @@ import (
 	"log"
 
 	"github.com/andresramirez/psych-appointments/config"
-	"github.com/andresramirez/psych-appointments/controllers"
+	appointmentcontroller "github.com/andresramirez/psych-appointments/controllers/appointment"
+	authcontroller "github.com/andresramirez/psych-appointments/controllers/auth"
+	availabilitycontroller "github.com/andresramirez/psych-appointments/controllers/availability"
+	blockcontroller "github.com/andresramirez/psych-appointments/controllers/block"
+	notecontroller "github.com/andresramirez/psych-appointments/controllers/note"
+	officecontroller "github.com/andresramirez/psych-appointments/controllers/office"
+	patientcontroller "github.com/andresramirez/psych-appointments/controllers/patient"
+	publiccontroller "github.com/andresramirez/psych-appointments/controllers/public"
 	"github.com/andresramirez/psych-appointments/db"
 	"github.com/andresramirez/psych-appointments/repositories"
 	"github.com/andresramirez/psych-appointments/router"
@@ -76,14 +83,14 @@ func main() {
 	log.Println("✅ Services initialized")
 
 	// 6. Inicializar controladores
-	authController := controllers.NewAuthController(authService)
-	appointmentController := controllers.NewAppointmentController(appointmentService)
-	availabilityController := controllers.NewAvailabilityController(availabilityService)
-	patientController := controllers.NewPatientController(patientService)
-	noteController := controllers.NewNoteController(noteService)
-	publicController := controllers.NewPublicController(availabilityService, appointmentService, authService)
-	blockController := controllers.NewBlockController(blockService)
-	consultorioController := controllers.NewConsultorioController(consultorioService)
+	authController := authcontroller.New(authService)
+	appointmentController := appointmentcontroller.New(appointmentService)
+	availabilityController := availabilitycontroller.New(availabilityService)
+	patientController := patientcontroller.New(patientService)
+	noteController := notecontroller.New(noteService)
+	publicController := publiccontroller.New(availabilityService, appointmentService, authService)
+	blockController := blockcontroller.New(blockService)
+	officeController := officecontroller.New(consultorioService)
 
 	log.Println("✅ Controllers initialized")
 
@@ -97,7 +104,7 @@ func main() {
 		noteController,
 		publicController,
 		blockController,
-		consultorioController,
+		officeController,
 	)
 
 	log.Println("✅ Router configured")

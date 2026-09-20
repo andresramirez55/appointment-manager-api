@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -9,25 +9,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type PublicController struct {
+type Controller struct {
 	availabilityService *services.AvailabilityService
 	appointmentService  *services.AppointmentService
 	authService         *services.AuthService
 }
 
-func NewPublicController(
+func New(
 	availabilityService *services.AvailabilityService,
 	appointmentService *services.AppointmentService,
 	authService *services.AuthService,
-) *PublicController {
-	return &PublicController{
+) *Controller {
+	return &Controller{
 		availabilityService: availabilityService,
 		appointmentService:  appointmentService,
 		authService:         authService,
 	}
 }
 
-func (ctrl *PublicController) GetProfessional(c *gin.Context) {
+func (ctrl *Controller) GetProfessional(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
@@ -45,7 +45,7 @@ func (ctrl *PublicController) GetProfessional(c *gin.Context) {
 	})
 }
 
-func (ctrl *PublicController) GetAvailableSlots(c *gin.Context) {
+func (ctrl *Controller) GetAvailableSlots(c *gin.Context) {
 	professionalID, err := strconv.ParseInt(c.Query("professional_id"), 10, 64)
 	if err != nil || professionalID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "professional_id required"})
@@ -73,7 +73,7 @@ func (ctrl *PublicController) GetAvailableSlots(c *gin.Context) {
 	c.JSON(http.StatusOK, slots)
 }
 
-func (ctrl *PublicController) GetAppointmentByToken(c *gin.Context) {
+func (ctrl *Controller) GetAppointmentByToken(c *gin.Context) {
 	token := c.Param("token")
 	appointment, err := ctrl.appointmentService.GetByCancelToken(c.Request.Context(), token)
 	if err != nil {
@@ -97,7 +97,7 @@ func (ctrl *PublicController) GetAppointmentByToken(c *gin.Context) {
 	})
 }
 
-func (ctrl *PublicController) CancelByToken(c *gin.Context) {
+func (ctrl *Controller) CancelByToken(c *gin.Context) {
 	token := c.Param("token")
 	if err := ctrl.appointmentService.CancelByToken(c.Request.Context(), token); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -106,7 +106,7 @@ func (ctrl *PublicController) CancelByToken(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Turno cancelado"})
 }
 
-func (ctrl *PublicController) CreateAppointment(c *gin.Context) {
+func (ctrl *Controller) CreateAppointment(c *gin.Context) {
 	var req services.CreateAppointmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})

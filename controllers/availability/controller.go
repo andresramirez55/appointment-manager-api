@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -8,15 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AvailabilityController struct {
+type Controller struct {
 	availabilityService *services.AvailabilityService
 }
 
-func NewAvailabilityController(availabilityService *services.AvailabilityService) *AvailabilityController {
-	return &AvailabilityController{availabilityService: availabilityService}
+func New(availabilityService *services.AvailabilityService) *Controller {
+	return &Controller{availabilityService: availabilityService}
 }
 
-func (ctrl *AvailabilityController) CreateSlot(c *gin.Context) {
+func (ctrl *Controller) CreateSlot(c *gin.Context) {
 	professionalID := c.GetInt64("professional_id")
 
 	var req services.CreateSlotRequest
@@ -36,7 +36,7 @@ func (ctrl *AvailabilityController) CreateSlot(c *gin.Context) {
 	c.JSON(http.StatusCreated, slot)
 }
 
-func (ctrl *AvailabilityController) GetSlots(c *gin.Context) {
+func (ctrl *Controller) GetSlots(c *gin.Context) {
 	professionalID := c.GetInt64("professional_id")
 
 	slots, err := ctrl.availabilityService.GetSlots(c.Request.Context(), professionalID)
@@ -48,7 +48,7 @@ func (ctrl *AvailabilityController) GetSlots(c *gin.Context) {
 	c.JSON(http.StatusOK, slots)
 }
 
-func (ctrl *AvailabilityController) DeleteSlot(c *gin.Context) {
+func (ctrl *Controller) DeleteSlot(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
@@ -63,7 +63,7 @@ func (ctrl *AvailabilityController) DeleteSlot(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Slot deleted"})
 }
 
-func (ctrl *AvailabilityController) CreateOverride(c *gin.Context) {
+func (ctrl *Controller) CreateOverride(c *gin.Context) {
 	professionalID := c.GetInt64("professional_id")
 
 	var req services.CreateOverrideRequest

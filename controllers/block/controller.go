@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -8,15 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type BlockController struct {
+type Controller struct {
 	blockService *services.BlockService
 }
 
-func NewBlockController(blockService *services.BlockService) *BlockController {
-	return &BlockController{blockService: blockService}
+func New(blockService *services.BlockService) *Controller {
+	return &Controller{blockService: blockService}
 }
 
-func (ctrl *BlockController) Create(c *gin.Context) {
+func (ctrl *Controller) Create(c *gin.Context) {
 	var req services.CreateBlockRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
@@ -32,7 +32,7 @@ func (ctrl *BlockController) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, block)
 }
 
-func (ctrl *BlockController) GetAll(c *gin.Context) {
+func (ctrl *Controller) GetAll(c *gin.Context) {
 	professionalID := c.MustGet("professional_id").(int64)
 	blocks, err := ctrl.blockService.GetBlocks(c.Request.Context(), professionalID)
 	if err != nil {
@@ -42,7 +42,7 @@ func (ctrl *BlockController) GetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, blocks)
 }
 
-func (ctrl *BlockController) Delete(c *gin.Context) {
+func (ctrl *Controller) Delete(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})

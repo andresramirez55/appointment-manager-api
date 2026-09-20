@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -8,15 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AppointmentController struct {
+type Controller struct {
 	appointmentService *services.AppointmentService
 }
 
-func NewAppointmentController(appointmentService *services.AppointmentService) *AppointmentController {
-	return &AppointmentController{appointmentService: appointmentService}
+func New(appointmentService *services.AppointmentService) *Controller {
+	return &Controller{appointmentService: appointmentService}
 }
 
-func (ctrl *AppointmentController) Create(c *gin.Context) {
+func (ctrl *Controller) Create(c *gin.Context) {
 	var req services.CreateAppointmentByPatientRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
@@ -32,7 +32,7 @@ func (ctrl *AppointmentController) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, appointment)
 }
 
-func (ctrl *AppointmentController) CreateRecurring(c *gin.Context) {
+func (ctrl *Controller) CreateRecurring(c *gin.Context) {
 	var req services.CreateRecurringRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
@@ -48,7 +48,7 @@ func (ctrl *AppointmentController) CreateRecurring(c *gin.Context) {
 	c.JSON(http.StatusCreated, appointments)
 }
 
-func (ctrl *AppointmentController) GetAll(c *gin.Context) {
+func (ctrl *Controller) GetAll(c *gin.Context) {
 	// Filtrar por paciente si se pasa patient_id
 	if patientIDStr := c.Query("patient_id"); patientIDStr != "" {
 		patientID, err := strconv.ParseInt(patientIDStr, 10, 64)
@@ -81,7 +81,7 @@ func (ctrl *AppointmentController) GetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, appointments)
 }
 
-func (ctrl *AppointmentController) GetByID(c *gin.Context) {
+func (ctrl *Controller) GetByID(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
@@ -97,7 +97,7 @@ func (ctrl *AppointmentController) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, appointment)
 }
 
-func (ctrl *AppointmentController) Update(c *gin.Context) {
+func (ctrl *Controller) Update(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
@@ -118,7 +118,7 @@ func (ctrl *AppointmentController) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Appointment updated"})
 }
 
-func (ctrl *AppointmentController) Delete(c *gin.Context) {
+func (ctrl *Controller) Delete(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
