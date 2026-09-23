@@ -14,10 +14,9 @@ type ipEntry struct {
 	mu        sync.Mutex
 }
 
-var ipStore sync.Map
-
 // RateLimit limits requests per IP to `max` per `window` duration.
 func RateLimit(max int, window time.Duration) gin.HandlerFunc {
+	var ipStore sync.Map
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
 

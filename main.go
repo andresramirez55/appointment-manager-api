@@ -14,6 +14,7 @@ import (
 	patientcontroller "github.com/andresramirez/psych-appointments/controllers/patient"
 	publiccontroller "github.com/andresramirez/psych-appointments/controllers/public"
 	"github.com/andresramirez/psych-appointments/db"
+	"github.com/andresramirez/psych-appointments/identity"
 	"github.com/andresramirez/psych-appointments/repositories"
 	"github.com/andresramirez/psych-appointments/router"
 	"github.com/andresramirez/psych-appointments/scheduler"
@@ -27,6 +28,10 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
+	provider, err := identity.New(cfg.AuthServiceURL, cfg.AuthIssuer)
+	if err != nil {
+		log.Fatalf("Invalid auth configuration: %v", err)
+	}
 	log.Println("✅ Configuration loaded")
 
 	// 2. Conectar a base de datos
@@ -63,7 +68,7 @@ func main() {
 	}
 
 	// 5. Inicializar servicios
-	authService := services.NewAuthService(professionalRepo, cfg.JWTSecret)
+	authService := services.NewAuthService(professionalRepo, provider)
 
 	var emailService *services.EmailService
 	if cfg.Email.ResendAPIKey != "" {

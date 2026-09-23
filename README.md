@@ -16,7 +16,7 @@ Diseñado para cualquier tipo de profesional: psicólogos, médicos, nutricionis
 - **Bloqueo de agenda** para marcar horarios no disponibles
 - **Estadísticas** de asistencia, turnos de la semana y pacientes activos
 - **Recordatorios automáticos** por email y WhatsApp 24hs antes del turno
-- **Perfil editable** (nombre, especialidad, contraseña)
+- **Perfil editable** (nombre, teléfono y especialidad)
 - **Multi-profesional**: cada cuenta es independiente con sus propios pacientes y turnos
 
 ### Para el paciente
@@ -29,7 +29,7 @@ Diseñado para cualquier tipo de profesional: psicólogos, médicos, nutricionis
 
 - PWA instalable en Android/iOS
 - Responsive (mobile y desktop)
-- JWT con expiración de 30 días
+- Auth Service separado: JWT RS256 de corta duración y refresh token con rotación
 - Notificaciones por email via [Resend](https://resend.com)
 - Notificaciones por WhatsApp via [Evolution API](https://evolution-api.com)
 
@@ -99,7 +99,10 @@ El sistema envía automáticamente un mensaje 24hs antes de cada turno programad
 | Variable | Descripción | Requerida |
 |----------|-------------|-----------|
 | `DATABASE_URL` | URL de PostgreSQL | Sí |
-| `JWT_SECRET` | Clave para firmar tokens | Sí |
+| `AUTH_SERVICE_URL` | URL del servicio de identidad | Sí |
+| `AUTH_ISSUER` | Issuer exacto de los JWT de Auth | Sí |
+| `FRONTEND_URL` | Origen permitido del frontend | Sí |
+| `AUTH_COOKIE_SECURE` | `true` en producción; `false` solo con HTTP local | No |
 | `PORT` | Puerto del servidor (default: 8080) | No |
 | `RESEND_API_KEY` | API key de Resend para emails | No |
 | `FROM_EMAIL` | Email remitente (ej: `turnos@tudominio.com`) | No |
@@ -112,7 +115,8 @@ El sistema envía automáticamente un mensaje 24hs antes de cada turno programad
 
 | Variable | Descripción |
 |----------|-------------|
-| `VITE_API_BASE_URL` | URL del backend (ej: `https://api.tudominio.com/api`) |
+| `VITE_API_BASE_URL` | `/api` (proxy desde el dominio del frontend) |
+| `BACKEND_URL` | Origen HTTPS del backend de turnos, usado por `server.js` |
 
 ---
 
@@ -129,8 +133,8 @@ El sistema envía automáticamente un mensaje 24hs antes de cada turno programad
 
 1. Crear servicio desde el repositorio del frontend
 2. Build command: `npm run build`
-3. Start command: `npm run preview`
-4. Configurar `VITE_API_BASE_URL` con la URL del backend
+3. Start command: `node server.js`
+4. Configurar `VITE_API_BASE_URL=/api` y `BACKEND_URL` con el origen del backend de turnos
 
 ---
 
@@ -152,7 +156,8 @@ El sistema envía automáticamente un mensaje 24hs antes de cada turno programad
 | `POST` | `/api/auth/login` | Login |
 | `GET` | `/api/profile` | Perfil del profesional |
 | `PUT` | `/api/profile` | Actualizar perfil |
-| `PUT` | `/api/profile/password` | Cambiar contraseña |
+| `POST` | `/api/auth/refresh` | Renovar sesión con cookie HttpOnly |
+| `POST` | `/api/auth/logout` | Revocar refresh token |
 | `GET` | `/api/appointments` | Listar turnos |
 | `POST` | `/api/appointments` | Crear turno |
 | `POST` | `/api/appointments/recurring` | Crear turnos recurrentes |
@@ -213,3 +218,7 @@ Router → Controllers → Services → Repositories → PostgreSQL
 - **Services**: Lógica de negocio
 - **Repositories**: Acceso a datos (GORM)
 - **Scheduler**: Corre cada hora, envía recordatorios 24hs antes de cada turno
+
+## Integración de identidad
+
+Configuración de Railway, desarrollo y limitaciones: [Auth Service](AUTH_INTEGRATION.md).

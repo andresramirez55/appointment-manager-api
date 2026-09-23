@@ -2,6 +2,8 @@ package router
 
 import (
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	appointmentcontroller "github.com/andresramirez/psych-appointments/controllers/appointment"
@@ -35,9 +37,19 @@ func NewRouter(
 	engine := gin.Default()
 
 	engine.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
+		origin := c.GetHeader("Origin")
+		allowed := strings.TrimRight(os.Getenv("FRONTEND_URL"), "/")
+		if origin != "" {
+			if origin != allowed {
+				c.AbortWithStatus(http.StatusForbidden)
+				return
+			}
+			c.Header("Access-Control-Allow-Origin", origin)
+			c.Header("Access-Control-Allow-Credentials", "true")
+			c.Header("Vary", "Origin")
+		}
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization, X-Session-Request")
 		if c.Request.Method == http.MethodOptions {
 			c.AbortWithStatus(http.StatusNoContent)
 			return
@@ -64,11 +76,17 @@ func NewRouter(
 	}
 
 	// Auth
-	api.POST("/auth/register", authController.Register)
-	api.POST("/auth/login", authController.Login)
+	auth := api.Group("/auth")
+	auth.Use(middleware.RateLimit(30, time.Minute))
+	auth.Use(func(c *gin.Context) { c.Header("Cache-Control", "no-store"); c.Next() })
+	auth.POST("/register", authController.Register)
+	auth.POST("/login", authController.Login)
+	auth.POST("/refresh", authController.Refresh)
+	auth.POST("/logout", authController.Logout)
 
 	// Protected routes (requieren autenticación)
 	protected := api.Group("")
+	protected.Use(func(c *gin.Context) { c.Header("Cache-Control", "no-store"); c.Next() })
 	protected.Use(middleware.AuthMiddleware(authService))
 	{
 		// Appointments
@@ -110,7 +128,6 @@ func NewRouter(
 		// Profile
 		protected.GET("/profile", authController.GetProfile)
 		protected.PUT("/profile", authController.UpdateProfile)
-		protected.PUT("/profile/password", authController.UpdatePassword)
 
 		// Blocks
 		blocks := protected.Group("/blocks")

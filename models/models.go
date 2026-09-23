@@ -8,15 +8,16 @@ import (
 
 // Professional representa al profesional de la salud (admin)
 type Professional struct {
-	ID        int64          `gorm:"primaryKey" json:"id"`
-	Email     string         `gorm:"uniqueIndex;not null" json:"email"`
-	Password  string         `gorm:"not null" json:"-"` // hash bcrypt, no exponer en JSON
-	Name      string         `gorm:"not null" json:"name"`
-	Phone     string         `gorm:"not null" json:"phone"`
-	Specialty string         `json:"specialty"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID         int64          `gorm:"primaryKey" json:"id"`
+	AuthUserID *string        `gorm:"uniqueIndex" json:"-"`
+	Email      string         `gorm:"uniqueIndex;not null" json:"email"`
+	Password   string         `gorm:"not null" json:"-"` // hash bcrypt, no exponer en JSON
+	Name       string         `gorm:"not null" json:"name"`
+	Phone      string         `gorm:"not null" json:"phone"`
+	Specialty  string         `json:"specialty"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // Consultorio representa un consultorio del profesional
@@ -47,16 +48,16 @@ type Patient struct {
 // AvailabilitySlot representa un horario regular de disponibilidad
 // Ejemplo: todos los lunes de 9 a 17hs con slots de 60 minutos
 type AvailabilitySlot struct {
-	ID                 int64          `gorm:"primaryKey" json:"id"`
-	ProfessionalID     int64          `gorm:"not null;index" json:"professional_id"`
-	Professional       *Professional  `gorm:"foreignKey:ProfessionalID" json:"professional,omitempty"`
-	DayOfWeek          int            `gorm:"not null" json:"day_of_week"` // 0=Domingo, 1=Lunes, ..., 6=Sábado
-	StartTime          string         `gorm:"not null" json:"start_time"`  // Formato "15:04"
-	EndTime            string         `gorm:"not null" json:"end_time"`    // Formato "15:04"
-	SlotDurationMinutes int           `gorm:"not null" json:"slot_duration_minutes"`
-	CreatedAt          time.Time      `json:"created_at"`
-	UpdatedAt          time.Time      `json:"updated_at"`
-	DeletedAt          gorm.DeletedAt `gorm:"index" json:"-"`
+	ID                  int64          `gorm:"primaryKey" json:"id"`
+	ProfessionalID      int64          `gorm:"not null;index" json:"professional_id"`
+	Professional        *Professional  `gorm:"foreignKey:ProfessionalID" json:"professional,omitempty"`
+	DayOfWeek           int            `gorm:"not null" json:"day_of_week"` // 0=Domingo, 1=Lunes, ..., 6=Sábado
+	StartTime           string         `gorm:"not null" json:"start_time"`  // Formato "15:04"
+	EndTime             string         `gorm:"not null" json:"end_time"`    // Formato "15:04"
+	SlotDurationMinutes int            `gorm:"not null" json:"slot_duration_minutes"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
+	DeletedAt           gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // AvailabilityOverride representa excepciones a la disponibilidad regular
@@ -87,10 +88,10 @@ type Appointment struct {
 	DurationMinutes int            `gorm:"not null" json:"duration_minutes"`
 	Status          string         `gorm:"not null;default:'scheduled'" json:"status"` // scheduled, completed, cancelled
 	CancelToken     string         `gorm:"uniqueIndex" json:"-"`
-	ReminderSentAt  *time.Time     `json:"reminder_sent_at"`                           // NULL si no se envió
+	ReminderSentAt  *time.Time     `json:"reminder_sent_at"` // NULL si no se envió
 	Paid            bool           `gorm:"default:false" json:"paid"`
-	PaymentMethod   string         `json:"payment_method"`                             // efectivo, transferencia, otro
-	Notes           string         `gorm:"type:text" json:"notes"`                     // Notas del turno
+	PaymentMethod   string         `json:"payment_method"`         // efectivo, transferencia, otro
+	Notes           string         `gorm:"type:text" json:"notes"` // Notas del turno
 	CreatedAt       time.Time      `json:"created_at"`
 	UpdatedAt       time.Time      `json:"updated_at"`
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
